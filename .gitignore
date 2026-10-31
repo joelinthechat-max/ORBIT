@@ -1,0 +1,25 @@
+# Full cross-platform runtimes and vendored binaries ship in the portable release asset.
+/RUNTIME/
+/VENDOR/*
+!/VENDOR/README.md
+
+# User-generated ORBIT state stays on the local USB drive, never in public Git history.
+/DATA/*
+!/DATA/workspace/
+!/DATA/BACKUPS/
+!/DATA/screenshots/
+!/DATA/workspace/.gitkeep
+!/DATA/BACKUPS/.gitkeep
+!/DATA/screenshots/.gitkeep
+/LOGS/*
+!/LOGS/.gitkeep
+/MODELS/*
+!/MODELS/README.md
+
+# Large release assets are attached to GitHub Releases, not committed to Git.
+/ORBIT-v0.6-PORTABLE.zip
+
+# Local Python tooling output.
+__pycache__/
+*.py[cod]
+*.pyo

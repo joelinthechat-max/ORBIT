@@ -1,0 +1,36 @@
+# ORBIT v0.6 — project status
+
+**Snapshot:** 2026-10-31. **Working tree:** project root. **Status:** v0.6 development build; core task storage, registered actions, human-gated desktop observation and portable launchers are integrated. This is not yet a generally autonomous or fully portable production computer-use agent.
+
+## What v0.6 adds
+
+A desktop action is no longer treated as verified merely because the input API returned. The engine records it as sent, places the task in an observation boundary and refuses a repeat. The app captures a fresh task-associated screenshot, saves a structured observation and moves the task to user review. Completion is recorded as verified only after the user explicitly confirms the visible outcome. Unverified results stay failed or awaiting review; there is no automatic retry of uncertain external actions.
+
+When a compatible local language model is explicitly configured, ORBIT can produce a bounded, JSON-validated assessment of the visible evidence. The dashboard labels it advisory and explicitly not verification. An adaptive replan endpoint can ask that local model for a revised plan when a task is failed, paused or awaiting review. Each proposed operation must pass the existing action registry. The proposal is persisted for review but cannot execute, transfer approval, or change the original task. The user must review it and create a separate task. With no language model configured, the endpoint returns an unavailable response without making a fallback plan.
+
+This is a **human-confirmed closed loop**, not an autonomous vision-driven loop that observes, chooses, acts and continues without a person. There is no actual inference in this build environment. Vision inference, thresholding, automatic recovery and unattended continuation remain unproven and are deliberately not claimed.
+
+## Verification performed
+
+- **52 unit tests passed** using the bundled Linux CPython 3.12.15 runtime (`python -m unittest discover -s tests -v`). This includes new restart-persistence coverage for advisory and revised-plan metadata.
+- Python compilation, `node --check orbit/static/app.js`, Linux shell syntax and JSON parsing passed.
+- `tests/integration_v06_observation.py` passed against the bundled launcher and live sandbox X11/HTTP server. It moved the pointer four pixels and restored it; no click or typing was sent. It verified Class B approval, sent/not-verified state, duplicate-action no-resend refusal, task-bound screenshot persistence, fail-closed adaptive proposal when no model is configured, explicit user confirmation, and verified state surviving app restart without input replay.
+- `tests/integration_v05_http.py` passed after updating its version assertion to v0.6.0. It launched the bundled Linux runtime, checked live status/resources/storage and desktop gates, executed the bounded three-step Class A workspace demo, exercised the emergency stop, and used an isolated Chromium session with a localhost-only fixture. Its cleanup restored config and removed its preflighted disposable task files.
+- `tests/integration_v05_browser.py` passed with real Playwright/Chromium against a temporary localhost fixture. It exercised navigation, reading, safe fill, password denial, visible state-changing click, dialog dismissal, screenshot and tab control. It did not contact a real research source.
+- `tests/integration_v05_desktop.py` passed with real sandbox X11: screenshot, window metadata, pointer move/restore, stale-observation denial and emergency-stop denial. No click or text was sent.
+- The launcher audit found both runtime binaries at their expected paths and no host-Python invocation in `.sh`/`.bat` launchers. Windows executable behavior was not run on Windows.
+
+## Remaining acceptance gaps
+
+1. **Desktop task:** no editor was launched and no text was typed or saved. The only v0.6 real task-level operation was the four-pixel pointer movement. Do not describe the requested text-editor workflow as complete.
+2. **Browser research:** only local test fixtures were used. No external-web research task, sources or research synthesis were completed.
+3. **Real model behavior:** no user-supplied GGUF or running local LLM/VLM was available. Advisory scoring and successful adaptive proposal generation were not tested against genuine inference. Only the missing-model failure path was exercised.
+4. **Autonomy/adaptation:** a model may propose a replacement plan, but it is not automatically adopted, approved or run. No visual dialog classification, confidence threshold, autonomous replan loop, automatic continuation or retry is claimed.
+5. **Portability/hardware:** no clean Windows execution, clean-host no-Python test, physical USB detach/recovery test, 4 GB RAM benchmark or supported-Linux distro matrix was performed. Linux still relies on compatible system libraries, X11, and optional host tools such as `xdotool`.
+6. **Security/privacy:** the dashboard has no authentication or encryption and must remain loopback-only. Browser host filtering is not a DNS-rebinding/network sandbox. Local DB, screenshots and browser profile may contain private data.
+
+## Build artifact
+
+[`ORBIT-v0.6-PORTABLE.zip`](../ORBIT-v0.6-PORTABLE.zip) is built at the project root (about 199 MB; 8,964 entries in the verified build). `unzip -t`, inventory checks and adjacent SHA-256 verification passed. It contains both bundled CPython 3.12.15 runtimes, both platform-specific vendor trees, source, tests and documentation. Generated SQLite data, model weights, browser profiles/cache, screenshots, bytecode caches and logs are excluded; `.gitkeep` directories remain. The archive is verified as a ZIP on Linux, but that does not substitute for running its Windows launcher on Windows. Verify the adjacent [`checksum file`](../ORBIT-v0.6-PORTABLE.zip.sha256) after rebuilding or transferring it.
+
+For operational setup and system limits, see [`README.md`](../README.md), [`USB_PORTABILITY.md`](USB_PORTABILITY.md), [`HARDWARE_COMPATIBILITY.md`](HARDWARE_COMPATIBILITY.md) and [`TEST_REPORT.md`](TEST_REPORT.md). For the next-agent task list, see [`HANDOFF_TO_NEXT_AGENT.md`](HANDOFF_TO_NEXT_AGENT.md).

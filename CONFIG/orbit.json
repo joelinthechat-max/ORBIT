@@ -1,0 +1,61 @@
+{
+  "host": "127.0.0.1",
+  "port": 8765,
+  "workspace": "DATA/workspace",
+  "models": {
+    "language": {
+      "enabled": false,
+      "provider": "openai-compatible-local",
+      "base_url": "http://127.0.0.1:8080/v1",
+      "model": "local-model",
+      "model_path": "",
+      "format": "unspecified",
+      "quantization": "unspecified",
+      "backend": "external local inference server",
+      "server_executable": "",
+      "timeout": 30,
+      "context_tokens": 2048
+    },
+    "vision": {
+      "enabled": false,
+      "provider": "openai-compatible-local-vision",
+      "base_url": "http://127.0.0.1:8081/v1",
+      "model": "vision-model",
+      "model_path": "",
+      "format": "unspecified",
+      "quantization": "unspecified",
+      "backend": "external local inference server",
+      "server_executable": "",
+      "mmproj_path": "",
+      "timeout": 60,
+      "context_tokens": 2048
+    }
+  },
+  "memory": {
+    "retention_days": 0
+  },
+  "browser": {
+    "enabled": false,
+    "headless": false,
+    "executable_path": "",
+    "allow_private_hosts": false
+  },
+  "autonomy": {
+    "max_actions": 12,
+    "max_retries": 0,
+    "task_timeout_seconds": 120
+  },
+  "security": {
+    "autonomous_mode_enabled": false,
+    "action_permissions": {
+      "A": true,
+      "B": true,
+      "C": true,
+      "D": false
+    },
+    "require_approval_for_moderate": true,
+    "require_approval_for_destructive": true,
+    "computer_control_enabled": false,
+    "approved_applications": {}
+  }
+}
