@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1 — 2026-10-31 (stability audit)
+
+- **Fixed Windows workspace-path validation** (`orbit/app.py`): the previous check rejected valid relative paths such as `DATA/workspace` after `pathlib` normalised separators on Windows. Validation now inspects the original configuration string, accepts both `/` and `\\`, and still rejects absolute, drive-qualified, UNC, and parent-traversal paths. Resolved paths are required to stay inside the ORBIT root.
+- **Fixed dashboard status crash** (`orbit/static/app.js`): `refreshStatus()` referenced the undeclared global `CONFIG_COMPUTER_ENABLED` before assignment, producing "Status CONFIG_COMPUTER_ENABLED is not defined" on load/reload. The status response field `c.control_enabled` is now used directly.
+- Added regression tests for portable workspace path validation (`tests/test_workspace_path.py`) covering forward/backslash separators, absolute paths, drive-qualified paths, UNC paths, parent traversal, empty values, and containment.
+- Version string updated to 0.6.1.
+- No architecture or safety-policy changes. Existing Class A/B/C permissions, approval tokens, emergency stop, and observation boundaries are unchanged.
+
 ## 0.6.0 — 2026-10-31
 
 - Added a task-bound desktop Observe → Act → fresh screenshot → user Verify boundary. Action dispatch is kept separate from verified completion; observations and screenshot references persist with task memory, and restart recovery never replays uncertain external input.
