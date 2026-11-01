@@ -1,0 +1,141 @@
+name: Build ORBIT v0.6.1 portable package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out audited source
+        uses: actions/checkout@v4
+
+      - name: Download the published v0.6.0 base package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/orbit-base"
+          gh release download v0.6.0 --repo "$GITHUB_REPOSITORY" --pattern "ORBIT-v0.6-PORTABLE.zip" --dir "$RUNNER_TEMP/orbit-base"
+
+      - name: Verify base archive against the tag checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/contents/ORBIT-v0.6-PORTABLE.zip.sha256?ref=v0.6.0" --jq .content | tr -d '\n' | base64 --decode > "$RUNNER_TEMP/orbit-base/expected.sha256"
+          cd "$RUNNER_TEMP/orbit-base"
+          sha256sum -c expected.sha256
+
+      - name: Overlay audited source and rebuild the portable archive
+        run: |
+          set -euo pipefail
+          BASE="$RUNNER_TEMP/orbit-base/ORBIT-v0.6-PORTABLE.zip"
+          PACKAGE="$RUNNER_TEMP/orbit-package"
+          mkdir -p "$PACKAGE"
+          unzip -q "$BASE" -d "$PACKAGE"
+          test -f "$PACKAGE/orbit/app.py"
+          test -f "$PACKAGE/orbit/static/app.js"
+          test -x "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12"
+          test -f "$PACKAGE/RUNTIME/WINDOWS/python/python.exe"
+          test -d "$PACKAGE/VENDOR/LINUX"
+          test -d "$PACKAGE/VENDOR/WINDOWS"
+          rsync -a --delete orbit/ "$PACKAGE/orbit/"
+          rsync -a --delete tests/ "$PACKAGE/tests/"
+          rsync -a DOCUMENTATION/ "$PACKAGE/DOCUMENTATION/"
+          cp README.md "$PACKAGE/README.md"
+          cp run_linux.sh run_windows.bat "$PACKAGE/"
+          export PYTHONHOME="$PACKAGE/RUNTIME/LINUX/python"
+          export PYTHONPATH="$PACKAGE"
+          export PYTHONNOUSERSITE=1
+          "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12" -m unittest discover -s "$PACKAGE/tests" -v
+          "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12" -m compileall -q "$PACKAGE/orbit" "$PACKAGE/tests"
+          node --check "$PACKAGE/orbit/static/app.js"
+          sh -n "$PACKAGE/run_linux.sh"
+          python -m json.tool "$PACKAGE/CONFIG/orbit.json" >/dev/null
+          grep -q '__version__ = "0.6.1"' "$PACKAGE/orbit/__init__.py"
+          grep -q "'version':'0.6.1'" "$PACKAGE/orbit/app.py"
+          rm -rf "$PACKAGE/LOGS" "$PACKAGE/DATA"
+          mkdir -p "$PACKAGE/LOGS" "$PACKAGE/DATA"
+          find "$PACKAGE" -type d -name __pycache__ -prune -exec rm -rf {} +
+          find "$PACKAGE" -type f -name '*.pyc' -delete
+          cd "$PACKAGE"
+          zip -qr "$RUNNER_TEMP/ORBIT-v0.6.1-PORTABLE.zip" .
+          cd "$RUNNER_TEMP"
+          sha256sum ORBIT-v0.6.1-PORTABLE.zip > ORBIT-v0.6.1-PORTABLE.zip.sha256
+          unzip -t ORBIT-v0.6.1-PORTABLE.zip
+          ls -lh ORBIT-v0.6.1-PORTABLE.zip ORBIT-v0.6.1-PORTABLE.zip.sha256
+
+      - name: Upload rebuilt portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ORBIT-v0.6.1-PORTABLE
+          path: |
+            ${{ runner.temp }}/ORBIT-v0.6.1-PORTABLE.zip
+            ${{ runner.temp }}/ORBIT-v0.6.1-PORTABLE.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-portable-smoke:
+    needs: build-linux-package
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Download rebuilt package
+        uses: actions/download-artifact@v4
+        with:
+          name: ORBIT-v0.6.1-PORTABLE
+          path: ${{ runner.temp }}/orbit-artifact
+
+      - name: Extract and test bundled Windows runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = Join-Path $env:RUNNER_TEMP 'orbit-artifact/ORBIT-v0.6.1-PORTABLE.zip'
+          $package = Join-Path $env:RUNNER_TEMP 'ORBIT-v0.6.1'
+          Expand-Archive -LiteralPath $zip -DestinationPath $package -Force
+          $python = Join-Path $package 'RUNTIME/WINDOWS/python/python.exe'
+          if (-not (Test-Path $python)) { throw 'Bundled Windows Python was not found in the archive.' }
+          $env:PYTHONHOME = Join-Path $package 'RUNTIME/WINDOWS/python'
+          $env:PYTHONPATH = $package
+          $env:PYTHONNOUSERSITE = '1'
+          $env:PYTHONUTF8 = '1'
+          & $python -m unittest discover -s (Join-Path $package 'tests') -v
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled Windows Python unit tests failed.' }
+          & $python -m compileall -q (Join-Path $package 'orbit') (Join-Path $package 'tests')
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled Windows Python compile check failed.' }
+          node --check (Join-Path $package 'orbit/static/app.js')
+          if ($LASTEXITCODE -ne 0) { throw 'Dashboard JavaScript syntax check failed.' }
+
+      - name: Launch the actual Windows USB launcher and verify status
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $env:RUNNER_TEMP 'ORBIT-v0.6.1'
+          $stdout = Join-Path $env:RUNNER_TEMP 'orbit-launcher.stdout.log'
+          $stderr = Join-Path $env:RUNNER_TEMP 'orbit-launcher.stderr.log'
+          $process = Start-Process -FilePath $env:ComSpec -ArgumentList @('/c', 'run_windows.bat') -WorkingDirectory $package -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          try {
+            $ready = $false
+            for ($i = 0; $i -lt 45; $i++) {
+              if ($process.HasExited) { break }
+              try {
+                $status = Invoke-RestMethod -Uri 'http://127.0.0.1:8765/api/status' -TimeoutSec 2
+                if ($status.version -eq '0.6.1') { $ready = $true; break }
+              } catch {}
+              Start-Sleep -Seconds 1
+            }
+            if (-not $ready) {
+              if (Test-Path $stdout) { Get-Content $stdout }
+              if (Test-Path $stderr) { Get-Content $stderr }
+              throw 'run_windows.bat did not start a healthy ORBIT 0.6.1 server.'
+            }
+            Write-Host 'PASS: bundled Windows runtime launched through run_windows.bat and /api/status reports 0.6.1.'
+          }
+          finally {
+            if (-not $process.HasExited) {
+              & taskkill.exe /PID $process.Id /T /F | Out-Null
+            }
+          }
