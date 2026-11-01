@@ -42,3 +42,7 @@ For operational setup and system limits, see [`README.md`](../README.md), [`USB_
 - GitHub Actions run 41279275468 passed all 63 unit tests and static checks on Ubuntu. The workflow was subsequently expanded to a Windows/Linux matrix; the new Windows result is pending confirmation.
 - The live HTTP integration smoke now checks the 0.6.1 status version. It requires the full bundled Linux runtime and a disposable Linux/X11 environment, so it is not run by source-checkout CI.
 - The 0.6.0 release ZIP has not been rebuilt from this branch. No v0.6.1 portable package is ready to distribute. Windows portable-runtime execution, physical USB behavior, 4 GB hardware and genuine model inference remain unverified.
+
+## Windows CI follow-up (2026-11-01)
+
+The first hosted Windows matrix leg exposed two issues. The legacy `safe_path` test used a case-sensitive string-prefix comparison, which is not portable to Windows path casing; it now compares resolved `Path` values. The Windows resident-memory sampler returned null because its ctypes Win32 handles/function signatures were not declared with pointer-sized types; the implementation now sets explicit `argtypes`/`restype` for Kernel32 and PSAPI. The Linux leg passed. These fixes are committed, but the rerun must pass before treating cross-platform source CI as green. This still does not test the bundled Windows runtime or batch launcher.
