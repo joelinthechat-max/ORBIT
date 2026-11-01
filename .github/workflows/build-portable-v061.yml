@@ -50,7 +50,7 @@ jobs:
           mkdir -p "$EXTRACT"
           unzip -q "$BASE" -d "$EXTRACT"
           echo "Base archive inventory (first 40 paths):"
-          unzip -Z1 "$BASE" | head -40
+          unzip -Z1 "$BASE" | sed -n '1,40p'
           APP_FILE=$(find "$EXTRACT" -type f -path '*/orbit/app.py' -print -quit)
           if [ -z "$APP_FILE" ]; then
             echo "Could not locate orbit/app.py in the extracted release archive."
