@@ -1,0 +1,110 @@
+name: Build ORBIT Windows desktop executable
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["feature/windows-desktop-exe"]
+    paths:
+      - "desktop_shell.py"
+      - "orbit/**"
+      - "CONFIG/**"
+      - "MODELS/**"
+      - "tests/**"
+      - ".github/workflows/build-windows-desktop.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "desktop_shell.py"
+      - "orbit/**"
+      - "CONFIG/**"
+      - "MODELS/**"
+      - "tests/**"
+      - ".github/workflows/build-windows-desktop.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  windows-desktop:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install application and packaging dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --upgrade pip
+          python -m pip install pyinstaller pywebview pillow pyautogui pyperclip psutil playwright pywin32 pythonnet
+
+      - name: Run source test suite
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONNOUSERSITE: "1"
+        run: python -m unittest discover -s tests -v
+
+      - name: Build single-file Windows desktop executable
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name ORBIT --add-data "orbit/static;orbit/static" --collect-all webview --collect-all clr_loader --hidden-import webview.platforms.edgechromium --hidden-import pyautogui --hidden-import PIL.ImageGrab --hidden-import pyperclip --hidden-import psutil --hidden-import playwright.sync_api desktop_shell.py
+
+      - name: Assemble USB-ready Windows folder
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'ORBIT-Windows'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item 'dist/ORBIT.exe' $out
+          Copy-Item 'CONFIG' $out -Recurse
+          Copy-Item 'MODELS' $out -Recurse
+          Copy-Item 'README.md' (Join-Path $out 'README-WINDOWS.txt')
+          foreach ($dir in @('DATA/workspace','DATA/BACKUPS','DATA/screenshots','LOGS')) {
+            New-Item -ItemType Directory -Force -Path (Join-Path $out $dir) | Out-Null
+          }
+          @'
+          ORBIT Windows Desktop — v0.6.1
+
+          1. Extract this entire folder to a writable USB drive or local folder.
+          2. Double-click ORBIT.exe.
+          3. ORBIT opens in its own desktop window; it does not open a separate browser tab.
+          4. Add your model files under MODELS and configure them in ORBIT.
+          5. Keep CONFIG, DATA, MODELS, LOGS and ORBIT.exe together.
+
+          Requirement: Microsoft Edge WebView2 Runtime (normally present on current Windows 10/11).
+          If the desktop window cannot open, install the Evergreen WebView2 Runtime and retry.
+
+          The browser automation feature is separate from the ORBIT desktop window. It uses an installed
+          Chromium-based browser or a user-installed Playwright browser. The desktop shell itself uses
+          the Windows WebView2 runtime to display the interface.
+
+          ORBIT binds its local service to loopback only. Do not expose it to a network.
+          Model weights are not included. Real GGUF/VLM inference and 4 GB hardware performance
+          must be tested on the target computer.
+          '@ | Set-Content -Encoding UTF8 (Join-Path $out 'START-HERE.txt')
+          Compress-Archive -Path (Join-Path $out '*') -DestinationPath (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip') -CompressionLevel Optimal
+          Get-FileHash (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip') -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  ORBIT-Windows-Desktop.zip" } |
+            Set-Content -Encoding ASCII (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip.sha256')
+
+      - name: Test packaged executable and API health
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'ORBIT-Windows'
+          $exe = Join-Path $out 'ORBIT.exe'
+          $p = Start-Process -FilePath $exe -ArgumentList '--self-test' -PassThru -Wait -WindowStyle Hidden
+          if ($p.ExitCode -ne 0) { throw "Packaged ORBIT executable self-test failed with exit code $($p.ExitCode)." }
+          Write-Host 'PASS: packaged ORBIT.exe started its bundled Python application, served /api/status, reported v0.6.1 and verified writable local storage.'
+
+      - name: Upload Windows desktop package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ORBIT-Windows-Desktop
+          path: |
+            \${{ runner.temp }}/ORBIT-Windows-Desktop.zip
+            \${{ runner.temp }}/ORBIT-Windows-Desktop.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
