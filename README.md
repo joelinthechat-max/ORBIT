@@ -1,4 +1,4 @@
-# ORBIT v0.6.0 — offline-first portable assistant
+# ORBIT v0.6.1 — offline-first portable assistant
 
 ORBIT is a local dashboard and modular task runner for bounded workspace operations, optional local-model planning, browser interaction and user-approved desktop controls. The model-free development mode runs with no model weights, no cloud service, and no host Python installation. All required ORBIT state (configuration, SQLite memory, workspace, logs and backups) resides under the extracted ORBIT directory.
 

@@ -31,7 +31,7 @@ def main():
    try:status=api(PORT,'/api/status');break
    except Exception:time.sleep(.25)
   else:raise TimeoutError('ORBIT startup timeout')
-  assert status['version']=='0.6.0' and status['resources']['application_rss_mb']>0 and status['resources']['model_server_rss_mb'] is None
+  assert status['version']=='0.6.1' and status['resources']['application_rss_mb']>0 and status['resources']['model_server_rss_mb'] is None
   assert status['storage']['available'] and not status['emergency_stop']
   html=req(PORT,'/')[1][1].decode();assert 'Browser automation' in html and 'BOUNDED AUTONOMY' in html
   catalog=api(PORT,'/api/actions'); ids={x['id']:x for x in catalog};assert {'desktop.capture_screen','desktop.click','browser.navigate','browser.submit_form'}<=ids.keys();assert ids['browser.submit_form']['permission']=='C'

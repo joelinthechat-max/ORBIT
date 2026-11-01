@@ -16,5 +16,5 @@ class CoreTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as d:
    with self.assertRaises(ValueError): SafetyPolicy().safe_path(Path(d),"../escape")
  def test_path_inside_allowed(self):
-  with tempfile.TemporaryDirectory() as d: self.assertTrue(str(SafetyPolicy().safe_path(Path(d),"ok.txt")).startswith(d))
+  with tempfile.TemporaryDirectory() as d: self.assertEqual(SafetyPolicy().safe_path(Path(d),"ok.txt"), (Path(d)/"ok.txt").resolve())
 if __name__=="__main__": unittest.main()

@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import sys
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 # Optional, platform-specific wheels are vendored beside the source, never installed globally.
 _ROOT = Path(__file__).resolve().parents[1]
