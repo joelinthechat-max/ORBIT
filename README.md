@@ -6,9 +6,9 @@ ORBIT is a local dashboard and modular task runner for bounded workspace operati
 
 ## Start
 
-1. Extract the full `ORBIT` folder to a writable USB drive. Keep its internal layout intact.
-2. On Windows x64, run `run_windows.bat`. On Linux x86_64 GNU, run `./run_linux.sh`. These use the included CPython 3.12.15 runtimes; they do not invoke host Python or install software globally.
-3. Open the printed loopback URL, normally `http://127.0.0.1:8765`. ORBIT binds to loopback only. Stop with Ctrl+C and let in-flight requests finish before safely ejecting the drive.
+**Windows desktop application:** use the separate `ORBIT-Windows-Desktop.zip` build artifact when available. Extract the complete folder to a writable USB drive and double-click `ORBIT.exe`. ORBIT opens in its own desktop window using the Windows WebView2 runtime; it does not launch a separate Chrome/Edge tab. Keep `ORBIT.exe`, `CONFIG`, `DATA`, `MODELS` and `LOGS` together. Current Windows 10/11 systems normally include WebView2; install the Evergreen WebView2 Runtime if it is missing.
+
+**Portable fallback / Linux:** extract the full `ORBIT` portable folder. On Windows x64, `run_windows.bat` remains available as a browser-based fallback. On Linux x86_64 GNU, run `./run_linux.sh` and open the printed loopback URL, normally `http://127.0.0.1:8765`. The portable launchers use the included CPython 3.12.15 runtimes and do not install Python globally. ORBIT binds to loopback only. Stop the app and let in-flight requests finish before safely ejecting the drive.
 
 The USB must be writable and have free space. The Linux runtime needs a compatible glibc/system loader. Windows, ARM, macOS and Linux musl were not tested/supported by these bundled runtimes. See [`USB_PORTABILITY.md`](DOCUMENTATION/USB_PORTABILITY.md).
 
@@ -24,9 +24,11 @@ The USB must be writable and have free space. The Linux runtime needs a compatib
 
 Desktop input, Browser automation, local inference, and autonomous mode default to disabled. Review the controls before enabling them. External website actions and Class B/C steps require fresh interactive confirmation. Do not expose this development server on a network; it has no login/authentication or encrypted local storage.
 
-## Source checkout and portable package
+## Desktop executable and portable package
 
-A source-only Git checkout may omit the large prebuilt `RUNTIME/` and `VENDOR/` binaries to avoid oversized Git objects. Use the complete `ORBIT-v0.6-PORTABLE.zip` release asset for the turnkey USB package; it includes both platform runtimes and vendored dependencies. Chromium browser binaries and model weights are still not included.
+The Windows desktop build is a single `ORBIT.exe` hosted in a native application window by WebView2. The dashboard assets are embedded in the executable; persistent configuration, SQLite memory, workspace, logs and model files stay in folders beside it on the USB drive. The desktop shell is not a separate browser tab, although it uses the Windows WebView2 rendering engine internally. Browser automation remains a separate optional feature.
+
+A source-only Git checkout may omit the large prebuilt `RUNTIME/` and `VENDOR/` binaries to avoid oversized Git objects. The full cross-platform `ORBIT-v0.6-PORTABLE.zip` remains available for the Python-runtime launcher workflow. Chromium browser binaries and model weights are not included.
 
 ## Browser setup
 
