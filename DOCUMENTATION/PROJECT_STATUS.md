@@ -46,3 +46,7 @@ For operational setup and system limits, see [`README.md`](../README.md), [`USB_
 ## Windows CI follow-up (2026-11-01)
 
 The first hosted Windows matrix leg exposed two issues. The legacy `safe_path` test used a case-sensitive string-prefix comparison, which is not portable to Windows path casing; it now compares resolved `Path` values. The Windows resident-memory sampler returned null because its ctypes Win32 handles/function signatures were not declared with pointer-sized types; the implementation now sets explicit `argtypes`/`restype` for Kernel32 and PSAPI. The Linux leg passed. These fixes are committed, but the rerun must pass before treating cross-platform source CI as green. This still does not test the bundled Windows runtime or batch launcher.
+
+## Cross-platform source CI result (2026-11-01)
+
+GitHub Actions run [41279467484](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279467484) passed on both `ubuntu-latest` and `windows-latest`. Each runner passed all 63 unit tests, Python compilation, dashboard JavaScript syntax and config JSON validation; the Linux-only shell syntax step passed on Ubuntu and was correctly skipped on Windows. This verifies the source checkout under hosted Python 3.12 on both operating systems. It does **not** execute the bundled CPython runtimes, `run_windows.bat`, or the full portable ZIP.
