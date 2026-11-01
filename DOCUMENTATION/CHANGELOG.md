@@ -1,5 +1,11 @@
 # Changelog
 
+## Windows CI follow-up — 2026-11-01
+
+- The first Windows matrix run exposed two test/runtime issues: the legacy path test compared Windows path strings with a case-sensitive prefix check, and the Windows process-RSS probe lacked pointer-safe Win32 function signatures.
+- Corrected the path test to compare resolved `Path` objects and updated the Windows RSS probe to declare pointer-sized handles and API signatures before calling PSAPI.
+- The Ubuntu matrix leg passed; Windows rerun is pending.
+
 ## 0.6.1 validation follow-up — 2026-11-01
 
 - GitHub Actions run 41279275468 passed all 63 source-checkout unit tests and the Python compile, JavaScript syntax, Linux shell syntax and configuration checks on Ubuntu.
