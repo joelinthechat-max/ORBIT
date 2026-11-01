@@ -77,3 +77,27 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONNOUSERSITE: "1"
         run: python tests/integration_v05_browser.py
+
+  desktop-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated X11 test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb xauth xdotool
+          python -m pip install --disable-pip-version-check pillow pyautogui
+
+      - name: Run harmless virtual-desktop smoke test
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONNOUSERSITE: "1"
+        run: xvfb-run -a -s "-screen 0 1280x800x24" python tests/integration_v05_desktop.py
