@@ -63,3 +63,11 @@ The earlier validation notes above contain intermediate statements that are now 
 - These runs do not close the separately listed gaps: physical USB removal/recovery, a 4 GB device benchmark, real GGUF/VLM inference, external-web research, editor typing/saving, and unattended vision-driven autonomy.
 
 The portable package is therefore available as a short-lived workflow artifact for review/testing. Do not claim the remaining hardware, real-model or full-autonomy acceptance items are complete.
+
+
+## Browser and desktop integration CI — 2026-11-01
+
+- Source CI run [41285777940](https://github.com/joelinthechat-max/ORBIT/actions/runs/41285777940) passed the Ubuntu and Windows unit/static jobs and a new real Playwright/Chromium localhost-fixture integration job. The browser test verified navigation, page reading, safe field fill, password-field denial, observable state change, safe dialog dismissal, screenshot capture and tab handling.
+- Source CI run [41285921421](https://github.com/joelinthechat-max/ORBIT/actions/runs/41285921421) passed all four jobs: Ubuntu tests, Windows tests, browser integration, and a virtual X11 desktop integration. The desktop test captured a 1280x800 screenshot, moved/restored the cursor, rejected stale observation coordinates and confirmed emergency-stop denial.
+- The virtual desktop test had one initial environment-only failure because the runner lacked `gnome-screenshot`; the dependency was added and the subsequent run passed.
+- These are isolated hosted CI fixtures, not proof of physical host desktop compatibility, editor typing/saving, real model inference, 4 GB operation or physical USB portability. The v0.6.1 candidate remains a draft PR and `main` remains unchanged.
