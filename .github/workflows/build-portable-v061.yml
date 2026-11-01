@@ -44,7 +44,7 @@ jobs:
 
       - name: Overlay audited source and rebuild the portable archive
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           BASE="$RUNNER_TEMP/orbit-base/ORBIT-v0.6-PORTABLE.zip"
           PACKAGE="$RUNNER_TEMP/orbit-package"
           mkdir -p "$PACKAGE"
