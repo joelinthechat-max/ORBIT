@@ -104,7 +104,7 @@ jobs:
         with:
           name: ORBIT-Windows-Desktop
           path: |
-            \${{ runner.temp }}/ORBIT-Windows-Desktop.zip
-            \${{ runner.temp }}/ORBIT-Windows-Desktop.zip.sha256
+            ${{ runner.temp }}/ORBIT-Windows-Desktop.zip
+            ${{ runner.temp }}/ORBIT-Windows-Desktop.zip.sha256
           if-no-files-found: error
           retention-days: 14
