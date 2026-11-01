@@ -56,6 +56,10 @@ def stop_server(app, server, worker) -> None:
 def self_test() -> int:
     app = server = worker = None
     try:
+        # Ensure the packaged desktop-window backend is importable, not just the HTTP server.
+        import webview
+        if os.name == "nt":
+            import webview.platforms.edgechromium
         app, server, worker, host, port = start_server()
         url = f"http://{host}:{port}/api/status"
         last_error = None
