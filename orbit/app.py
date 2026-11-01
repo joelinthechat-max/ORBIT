@@ -13,7 +13,7 @@ from .adapters.browser import BrowserAdapter
 from .adapters.llama_server import LocalModelManager
 from .resources import ResourceMonitor
 
-ROOT=Path(__file__).resolve().parents[1]; CONFIG_PATH=ROOT/'CONFIG'/'orbit.json'; CONFIG=json.loads(CONFIG_PATH.read_text(encoding='utf-8')); DATA=ROOT/'DATA'
+ROOT=Path(os.environ.get('ORBIT_ROOT', Path(__file__).resolve().parents[1])).resolve(); STATIC_DIR=Path(os.environ.get('ORBIT_STATIC_DIR', ROOT/'orbit'/'static')).resolve(); CONFIG_PATH=ROOT/'CONFIG'/'orbit.json'; CONFIG=json.loads(CONFIG_PATH.read_text(encoding='utf-8')); DATA=ROOT/'DATA'
 def _validate_and_resolve_workspace(config_value, orbit_root):
     """Resolve a portable workspace path while preventing traversal and symlink escapes."""
     raw = str(config_value if config_value is not None else '').strip()
@@ -153,7 +153,7 @@ def local_model(role='language'):
     default_url='http://127.0.0.1:8081/v1' if role=='vision' else 'http://127.0.0.1:8080/v1'
     return OpenAICompatibleModel(cfg.get('base_url',default_url),cfg.get('model','local-model'),cfg.get('timeout',30),cfg.get('context_tokens',2048))
 class Handler(SimpleHTTPRequestHandler):
-    def __init__(self,*a,**kw): super().__init__(*a,directory=str(ROOT/'orbit'/'static'),**kw)
+    def __init__(self,*a,**kw): super().__init__(*a,directory=str(STATIC_DIR),**kw)
     def log_message(self,fmt,*args): logging.info('http %s',fmt%args)
     def respond(self,obj,status=200):
         body=json.dumps(obj,ensure_ascii=False).encode(); self.send_response(status); self.send_header('Content-Type','application/json; charset=utf-8'); self.send_header('Content-Length',str(len(body))); self.send_header('Cache-Control','no-store'); self.end_headers(); self.wfile.write(body)
@@ -452,17 +452,24 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception as e: return self.respond({'error':str(e)},400)
         return self.respond({'error':'Not found'},404)
 
-def main():
+def create_server():
     host=os.environ.get('ORBIT_HOST',CONFIG.get('host','127.0.0.1')); port=int(os.environ.get('ORBIT_PORT',CONFIG.get('port',8765)))
     if host not in {'127.0.0.1','localhost','::1'}: raise RuntimeError('ORBIT only binds to loopback in this development build')
     server=ThreadingHTTPServer((host,port),Handler); server.daemon_threads=False
+    return server,host,port
+
+def shutdown():
+    ENGINE.cancel_autonomous()
+    try: BROWSER.close()
+    except Exception: pass
+    MODEL_MANAGER.stop()
+    MEMORY.close()
+
+def main():
+    server,host,port=create_server()
     print(f'ORBIT v0.6.1 running at http://{host}:{port} on USB-local storage (Ctrl+C to stop; active requests will finish first)')
     try: server.serve_forever()
     except KeyboardInterrupt: print('\nStopping ORBIT')
     finally:
-        ENGINE.cancel_autonomous()
-        try: BROWSER.close()
-        except Exception: pass
-        MODEL_MANAGER.stop()
-        server.server_close(); MEMORY.close()
+        server.server_close(); shutdown()
 if __name__=='__main__': main()
