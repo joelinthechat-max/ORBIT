@@ -54,7 +54,7 @@ jobs:
           "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12" -m compileall -q "$PACKAGE/orbit" "$PACKAGE/tests"
           node --check "$PACKAGE/orbit/static/app.js"
           sh -n "$PACKAGE/run_linux.sh"
-          python -m json.tool "$PACKAGE/CONFIG/orbit.json" >/dev/null
+          "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12" -m json.tool "$PACKAGE/CONFIG/orbit.json" >/dev/null
           grep -q '__version__ = "0.6.1"' "$PACKAGE/orbit/__init__.py"
           grep -q "'version':'0.6.1'" "$PACKAGE/orbit/app.py"
           rm -rf "$PACKAGE/LOGS" "$PACKAGE/DATA"
