@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1 validation follow-up — 2026-11-01
+
+- GitHub Actions run 41279275468 passed all 63 source-checkout unit tests and the Python compile, JavaScript syntax, Linux shell syntax and configuration checks on Ubuntu.
+- The workflow was expanded to run the same Python/compile/JavaScript/configuration checks on both Ubuntu and Windows hosted runners. Windows matrix status is pending confirmation.
+- Updated the bundled-runtime live HTTP smoke test's expected API version to 0.6.1. The source-only CI does not execute that hardware/GUI integration test.
+- No v0.6.1 portable ZIP has been rebuilt or released; the previously published v0.6.0 binary is not the corrected package.
+
 ## 0.6.1 — 2026-10-31 (stability audit)
 
 - **Fixed Windows workspace-path validation** (`orbit/app.py`): the previous check rejected valid relative paths such as `DATA/workspace` after `pathlib` normalised separators on Windows. Validation now inspects the original configuration string, accepts both `/` and `\\`, and still rejects absolute, drive-qualified, UNC, and parent-traversal paths. Resolved paths are required to stay inside the ORBIT root.
