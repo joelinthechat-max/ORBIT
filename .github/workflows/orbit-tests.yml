@@ -1,0 +1,48 @@
+name: ORBIT tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "audit/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-static-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run Python unit tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONNOUSERSITE: "1"
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile Python source
+        run: python -m compileall -q orbit tests
+
+      - name: Check dashboard JavaScript syntax
+        run: node --check orbit/static/app.js
+
+      - name: Check shell launcher syntax
+        run: |
+          sh -n run_linux.sh
+          if [ -f setup_browser_linux.sh ]; then sh -n setup_browser_linux.sh; fi
+
+      - name: Validate configuration JSON
+        run: python -m json.tool CONFIG/orbit.json > /dev/null
