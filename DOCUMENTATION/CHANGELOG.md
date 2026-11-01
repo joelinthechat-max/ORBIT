@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.1 CI and portable-build validation — 2026-11-01
+
+- Supersedes the earlier intermediate notes below that described Windows CI as pending and the v0.6.1 portable package as not yet rebuilt.
+- GitHub Actions source CI run [41279727228](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279727228) passed all 63 tests and static checks on both Ubuntu and Windows.
+- Portable build and Windows smoke run [41279727221](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279727221) passed: the audited source was overlaid onto the checksum-verified v0.6.0 base package, the bundled Linux runtime test suite and static checks passed, the v0.6.1 portable ZIP integrity check passed, all bundled Windows Python tests passed, and `run_windows.bat` launched a healthy v0.6.1 server.
+- The rebuilt `ORBIT-v0.6.1-PORTABLE.zip` is available in the GitHub Actions artifact `ORBIT-v0.6.1-PORTABLE` for 14 days from 2026-11-01. This is a build artifact, not a published GitHub release.
+- These CI results do not establish physical USB reliability, 4 GB hardware compatibility, genuine local-model inference, external-web research, editor end-to-end operation, or fully autonomous vision-driven behavior.
+
+# Changelog
+
 ## Windows CI follow-up — 2026-11-01
 
 - The first Windows matrix run exposed two test/runtime issues: the legacy path test compared Windows path strings with a case-sensitive prefix check, and the Windows process-RSS probe lacked pointer-safe Win32 function signatures.
