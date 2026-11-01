@@ -1,6 +1,6 @@
-# ORBIT v0.6 — project status
+# ORBIT v0.6.1 — project status
 
-**Snapshot:** 2026-10-31. **Working tree:** project root. **Status:** v0.6 development build; core task storage, registered actions, human-gated desktop observation and portable launchers are integrated. This is not yet a generally autonomous or fully portable production computer-use agent.
+**Snapshot:** 2026-11-01. **Source branch:** `audit/v0.6-stability-fixes`. **Status:** v0.6.1 stability-audit source; core task storage, registered actions, human-gated desktop observation and portable launchers are integrated. This is not yet a generally autonomous or fully portable production computer-use agent.
 
 ## What v0.6 adds
 
@@ -12,10 +12,10 @@ This is a **human-confirmed closed loop**, not an autonomous vision-driven loop 
 
 ## Verification performed
 
-- **52 unit tests passed** using the bundled Linux CPython 3.12.15 runtime (`python -m unittest discover -s tests -v`). This includes new restart-persistence coverage for advisory and revised-plan metadata.
+- **63 unit tests passed** in GitHub Actions on Ubuntu using Python 3.12 (`python -m unittest discover -s tests -v`); Python compile, dashboard JavaScript syntax, Linux launcher syntax and config JSON checks also passed. This CI run tests the source checkout, not the separate bundled portable runtimes.
 - Python compilation, `node --check orbit/static/app.js`, Linux shell syntax and JSON parsing passed.
 - `tests/integration_v06_observation.py` passed against the bundled launcher and live sandbox X11/HTTP server. It moved the pointer four pixels and restored it; no click or typing was sent. It verified Class B approval, sent/not-verified state, duplicate-action no-resend refusal, task-bound screenshot persistence, fail-closed adaptive proposal when no model is configured, explicit user confirmation, and verified state surviving app restart without input replay.
-- `tests/integration_v05_http.py` passed after updating its version assertion to v0.6.0. It launched the bundled Linux runtime, checked live status/resources/storage and desktop gates, executed the bounded three-step Class A workspace demo, exercised the emergency stop, and used an isolated Chromium session with a localhost-only fixture. Its cleanup restored config and removed its preflighted disposable task files.
+- `tests/integration_v05_http.py` passed after updating its version assertion to v0.6.1. It launched the bundled Linux runtime, checked live status/resources/storage and desktop gates, executed the bounded three-step Class A workspace demo, exercised the emergency stop, and used an isolated Chromium session with a localhost-only fixture. Its cleanup restored config and removed its preflighted disposable task files.
 - `tests/integration_v05_browser.py` passed with real Playwright/Chromium against a temporary localhost fixture. It exercised navigation, reading, safe fill, password denial, visible state-changing click, dialog dismissal, screenshot and tab control. It did not contact a real research source.
 - `tests/integration_v05_desktop.py` passed with real sandbox X11: screenshot, window metadata, pointer move/restore, stale-observation denial and emergency-stop denial. No click or text was sent.
 - The launcher audit found both runtime binaries at their expected paths and no host-Python invocation in `.sh`/`.bat` launchers. Windows executable behavior was not run on Windows.
@@ -31,6 +31,14 @@ This is a **human-confirmed closed loop**, not an autonomous vision-driven loop 
 
 ## Build artifact
 
-[`ORBIT-v0.6-PORTABLE.zip`](../ORBIT-v0.6-PORTABLE.zip) is built at the project root (about 199 MB; 8,964 entries in the verified build). `unzip -t`, inventory checks and adjacent SHA-256 verification passed. It contains both bundled CPython 3.12.15 runtimes, both platform-specific vendor trees, source, tests and documentation. Generated SQLite data, model weights, browser profiles/cache, screenshots, bytecode caches and logs are excluded; `.gitkeep` directories remain. The archive is verified as a ZIP on Linux, but that does not substitute for running its Windows launcher on Windows. Verify the adjacent [`checksum file`](../ORBIT-v0.6-PORTABLE.zip.sha256) after rebuilding or transferring it.
+[`ORBIT-v0.6-PORTABLE.zip`](../ORBIT-v0.6-PORTABLE.zip) is built at the project root (about 199 MB; 8,964 entries in the verified build). `unzip -t`, inventory checks and adjacent SHA-256 verification passed. It contains both bundled CPython 3.12.15 runtimes, both platform-specific vendor trees, source, tests and documentation. Generated SQLite data, model weights, browser profiles/cache, screenshots, bytecode caches and logs are excluded; `.gitkeep` directories remain. That historical v0.6.0 archive verification does not verify a rebuilt v0.6.1 release or substitute for running its Windows launcher on Windows. Verify the adjacent [`checksum file`](../ORBIT-v0.6-PORTABLE.zip.sha256) after rebuilding or transferring it.
 
 For operational setup and system limits, see [`README.md`](../README.md), [`USB_PORTABILITY.md`](USB_PORTABILITY.md), [`HARDWARE_COMPATIBILITY.md`](HARDWARE_COMPATIBILITY.md) and [`TEST_REPORT.md`](TEST_REPORT.md). For the next-agent task list, see [`HANDOFF_TO_NEXT_AGENT.md`](HANDOFF_TO_NEXT_AGENT.md).
+
+
+## v0.6.1 stability-audit update (2026-11-01)
+
+- Corrected Windows workspace-path validation and dashboard status refresh, and aligned both runtime and package version strings to 0.6.1.
+- GitHub Actions run 41279275468 passed all 63 unit tests and static checks on Ubuntu. The workflow was subsequently expanded to a Windows/Linux matrix; the new Windows result is pending confirmation.
+- The live HTTP integration smoke now checks the 0.6.1 status version. It requires the full bundled Linux runtime and a disposable Linux/X11 environment, so it is not run by source-checkout CI.
+- The 0.6.0 release ZIP has not been rebuilt from this branch. No v0.6.1 portable package is ready to distribute. Windows portable-runtime execution, physical USB behavior, 4 GB hardware and genuine model inference remain unverified.
