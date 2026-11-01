@@ -49,7 +49,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Build single-file Windows desktop executable
-        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name ORBIT --add-data "orbit/static;orbit/static" --collect-all webview --collect-all clr_loader --hidden-import webview.platforms.edgechromium --hidden-import pyautogui --hidden-import PIL.ImageGrab --hidden-import pyperclip --hidden-import psutil --hidden-import playwright.sync_api desktop_shell.py
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name ORBIT --add-data "orbit/static;orbit/static" --collect-all webview --collect-all clr_loader --collect-all playwright --hidden-import webview.platforms.edgechromium --hidden-import pyautogui --hidden-import PIL.ImageGrab --hidden-import pyperclip --hidden-import psutil --hidden-import playwright.sync_api desktop_shell.py
 
       - name: Assemble USB-ready Windows folder
         shell: pwsh
