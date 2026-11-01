@@ -84,10 +84,10 @@ jobs:
           Model weights are not included. Real GGUF/VLM inference and 4 GB hardware performance
           must be tested on the target computer.
           '@ | Set-Content -Encoding UTF8 (Join-Path $out 'START-HERE.txt')
-          Compress-Archive -Path (Join-Path $out '*') -DestinationPath (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip') -CompressionLevel Optimal
-          Get-FileHash (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip') -Algorithm SHA256 |
+          Compress-Archive -Path (Join-Path $out '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE 'ORBIT-Windows-Desktop.zip') -CompressionLevel Optimal
+          Get-FileHash (Join-Path $env:GITHUB_WORKSPACE 'ORBIT-Windows-Desktop.zip') -Algorithm SHA256 |
             ForEach-Object { "$($_.Hash.ToLower())  ORBIT-Windows-Desktop.zip" } |
-            Set-Content -Encoding ASCII (Join-Path $env:RUNNER_TEMP 'ORBIT-Windows-Desktop.zip.sha256')
+            Set-Content -Encoding ASCII (Join-Path $env:GITHUB_WORKSPACE 'ORBIT-Windows-Desktop.zip.sha256')
 
       - name: Test packaged executable and API health
         shell: pwsh
@@ -104,7 +104,7 @@ jobs:
         with:
           name: ORBIT-Windows-Desktop
           path: |
-            ${{ runner.temp }}/ORBIT-Windows-Desktop.zip
-            ${{ runner.temp }}/ORBIT-Windows-Desktop.zip.sha256
+            ORBIT-Windows-Desktop.zip
+            ORBIT-Windows-Desktop.zip.sha256
           if-no-files-found: error
           retention-days: 14
