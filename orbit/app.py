@@ -171,7 +171,7 @@ class Handler(SimpleHTTPRequestHandler):
             except OSError as e: storage={'available':False,'writable':False,'error':str(e),'root':str(ROOT)}
             try: resources=RESOURCES.sample([MODEL_MANAGER.status()['pid']] if MODEL_MANAGER.status()['pid'] else [])
             except Exception: resources={'available_ram_mb':None,'application_rss_mb':None,'model_server_rss_mb':None,'cpu_percent':None,'note':'Measurement unavailable.'}
-            return self.respond({'name':'ORBIT','version':'0.6.0','mode':'offline-first; no model required for deterministic workspace actions','model':model_status('language'),'vision':model_status('vision'),'computer':desktop,'browser':BROWSER.status(),'memory':{'database':'DATA/orbit.sqlite3','integrity':MEMORY.integrity_check(),'recoverable_tasks':len(MEMORY.recoverable_tasks())},'storage':storage,'security':{'approved_applications':CONFIG.get('security',{}).get('approved_applications',{})},'autonomous_mode':bool(CONFIG.get('security',{}).get('autonomous_mode_enabled',False)),'autonomy':CONFIG.get('autonomy',{}),'emergency_stop':EMERGENCY_STOP.is_set(),'screen_observed_at':LAST_SCREEN.get('at') if LAST_SCREEN else None,'workspace':str(WORKSPACE.relative_to(ROOT)),'resources':resources,'resource_note':'Null fields mean the host did not expose a measurement.'})
+            return self.respond({'name':'ORBIT','version':'0.6.1','mode':'offline-first; no model required for deterministic workspace actions','model':model_status('language'),'vision':model_status('vision'),'computer':desktop,'browser':BROWSER.status(),'memory':{'database':'DATA/orbit.sqlite3','integrity':MEMORY.integrity_check(),'recoverable_tasks':len(MEMORY.recoverable_tasks())},'storage':storage,'security':{'approved_applications':CONFIG.get('security',{}).get('approved_applications',{})},'autonomous_mode':bool(CONFIG.get('security',{}).get('autonomous_mode_enabled',False)),'autonomy':CONFIG.get('autonomy',{}),'emergency_stop':EMERGENCY_STOP.is_set(),'screen_observed_at':LAST_SCREEN.get('at') if LAST_SCREEN else None,'workspace':str(WORKSPACE.relative_to(ROOT)),'resources':resources,'resource_note':'Null fields mean the host did not expose a measurement.'})
         if path=='/api/tasks': return self.respond(MEMORY.list_tasks())
         if path=='/api/tasks/search': return self.respond(MEMORY.search_tasks(query.get('q',[''])[0]))
         if path=='/api/actions': return self.respond(REGISTRY.catalog())
@@ -456,7 +456,7 @@ def main():
     host=os.environ.get('ORBIT_HOST',CONFIG.get('host','127.0.0.1')); port=int(os.environ.get('ORBIT_PORT',CONFIG.get('port',8765)))
     if host not in {'127.0.0.1','localhost','::1'}: raise RuntimeError('ORBIT only binds to loopback in this development build')
     server=ThreadingHTTPServer((host,port),Handler); server.daemon_threads=False
-    print(f'ORBIT v0.6.0 running at http://{host}:{port} on USB-local storage (Ctrl+C to stop; active requests will finish first)')
+    print(f'ORBIT v0.6.1 running at http://{host}:{port} on USB-local storage (Ctrl+C to stop; active requests will finish first)')
     try: server.serve_forever()
     except KeyboardInterrupt: print('\nStopping ORBIT')
     finally:
