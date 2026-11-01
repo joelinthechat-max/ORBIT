@@ -2,6 +2,16 @@ name: Build ORBIT v0.6.1 portable package
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["audit/v0.6-stability-fixes"]
+    paths:
+      - ".github/workflows/build-portable-v061.yml"
+      - "orbit/**"
+      - "tests/**"
+      - "README.md"
+      - "DOCUMENTATION/**"
+      - "run_linux.sh"
+      - "run_windows.bat"
 
 permissions:
   contents: read
