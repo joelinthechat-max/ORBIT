@@ -1,3 +1,10 @@
+## Additional browser and desktop integration coverage — 2026-11-01
+
+- Added an isolated Playwright/Chromium localhost-fixture job to source CI. It passed navigation, page reading, safe fill, password denial, observable click, safe dialog handling, screenshot and tab tests.
+- Added an Xvfb virtual-desktop smoke job. After installing the missing `gnome-screenshot` runner dependency, it passed real screenshot capture, harmless cursor movement/restoration, stale-coordinate denial and emergency-stop checks.
+- Latest four-job CI run: [41285921421](https://github.com/joelinthechat-max/ORBIT/actions/runs/41285921421) — Ubuntu, Windows, browser integration and desktop integration all passed.
+- These CI fixtures do not substitute for physical host testing, real GGUF/VLM inference, a 4 GB benchmark or a physical USB test.
+
 # Changelog
 
 ## v0.6.1 CI and portable-build validation — 2026-11-01
