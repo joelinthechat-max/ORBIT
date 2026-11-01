@@ -41,17 +41,52 @@ class ResourceMonitor:
         return {}
     @staticmethod
     def _windows_rss(pid=None):
+        """Return a process working set using pointer-sized Win32 handles."""
         try:
             from ctypes import wintypes
+
             class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
-                _fields_=[('cb',wintypes.DWORD),('PageFaultCount',wintypes.DWORD),('PeakWorkingSetSize',ctypes.c_size_t),('WorkingSetSize',ctypes.c_size_t),('QuotaPeakPagedPoolUsage',ctypes.c_size_t),('QuotaPagedPoolUsage',ctypes.c_size_t),('QuotaPeakNonPagedPoolUsage',ctypes.c_size_t),('QuotaNonPagedPoolUsage',ctypes.c_size_t),('PagefileUsage',ctypes.c_size_t),('PeakPagefileUsage',ctypes.c_size_t)]
-            handle=ctypes.windll.kernel32.GetCurrentProcess() if pid is None else ctypes.windll.kernel32.OpenProcess(0x0400|0x0010,False,int(pid))
-            if not handle: return None
-            m=PROCESS_MEMORY_COUNTERS(); m.cb=ctypes.sizeof(m)
-            ok=ctypes.windll.psapi.GetProcessMemoryInfo(handle,ctypes.byref(m),m.cb)
-            if pid is not None: ctypes.windll.kernel32.CloseHandle(handle)
-            return int(m.WorkingSetSize) if ok else None
-        except Exception: return None
+                _fields_ = [
+                    ('cb', wintypes.DWORD),
+                    ('PageFaultCount', wintypes.DWORD),
+                    ('PeakWorkingSetSize', ctypes.c_size_t),
+                    ('WorkingSetSize', ctypes.c_size_t),
+                    ('QuotaPeakPagedPoolUsage', ctypes.c_size_t),
+                    ('QuotaPagedPoolUsage', ctypes.c_size_t),
+                    ('QuotaPeakNonPagedPoolUsage', ctypes.c_size_t),
+                    ('QuotaNonPagedPoolUsage', ctypes.c_size_t),
+                    ('PagefileUsage', ctypes.c_size_t),
+                    ('PeakPagefileUsage', ctypes.c_size_t),
+                ]
+
+            kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+            psapi = ctypes.WinDLL('psapi', use_last_error=True)
+            kernel32.GetCurrentProcess.argtypes = []
+            kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+            kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel32.OpenProcess.restype = wintypes.HANDLE
+            kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+            kernel32.CloseHandle.restype = wintypes.BOOL
+            psapi.GetProcessMemoryInfo.argtypes = [
+                wintypes.HANDLE,
+                ctypes.POINTER(PROCESS_MEMORY_COUNTERS),
+                wintypes.DWORD,
+            ]
+            psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
+
+            handle = kernel32.GetCurrentProcess() if pid is None else kernel32.OpenProcess(0x0400 | 0x0010, False, int(pid))
+            if not handle:
+                return None
+            counters = PROCESS_MEMORY_COUNTERS()
+            counters.cb = ctypes.sizeof(counters)
+            try:
+                ok = psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb)
+                return int(counters.WorkingSetSize) if ok else None
+            finally:
+                if pid is not None:
+                    kernel32.CloseHandle(handle)
+        except Exception:
+            return None
     def sample(self,model_pids=None):
         model_pids=list(model_pids or []); model_rss=[]
         if os.name=='nt':
