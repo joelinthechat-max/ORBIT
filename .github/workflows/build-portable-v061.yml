@@ -46,10 +46,18 @@ jobs:
         run: |
           set -euxo pipefail
           BASE="$RUNNER_TEMP/orbit-base/ORBIT-v0.6-PORTABLE.zip"
-          PACKAGE="$RUNNER_TEMP/orbit-package"
-          mkdir -p "$PACKAGE"
-          unzip -q "$BASE" -d "$PACKAGE"
-          test -f "$PACKAGE/orbit/app.py"
+          EXTRACT="$RUNNER_TEMP/orbit-extracted"
+          mkdir -p "$EXTRACT"
+          unzip -q "$BASE" -d "$EXTRACT"
+          echo "Base archive inventory (first 40 paths):"
+          unzip -Z1 "$BASE" | head -40
+          APP_FILE=$(find "$EXTRACT" -type f -path '*/orbit/app.py' -print -quit)
+          if [ -z "$APP_FILE" ]; then
+            echo "Could not locate orbit/app.py in the extracted release archive."
+            exit 1
+          fi
+          PACKAGE="${APP_FILE%/orbit/app.py}"
+          echo "Detected ORBIT package root: $PACKAGE"
           test -f "$PACKAGE/orbit/static/app.js"
           test -x "$PACKAGE/RUNTIME/LINUX/python/bin/python3.12"
           test -f "$PACKAGE/RUNTIME/WINDOWS/python/python.exe"
