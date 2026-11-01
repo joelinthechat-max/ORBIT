@@ -50,3 +50,16 @@ The first hosted Windows matrix leg exposed two issues. The legacy `safe_path` t
 ## Cross-platform source CI result (2026-11-01)
 
 GitHub Actions run [41279467484](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279467484) passed on both `ubuntu-latest` and `windows-latest`. Each runner passed all 63 unit tests, Python compilation, dashboard JavaScript syntax and config JSON validation; the Linux-only shell syntax step passed on Ubuntu and was correctly skipped on Windows. This verifies the source checkout under hosted Python 3.12 on both operating systems. It does **not** execute the bundled CPython runtimes, `run_windows.bat`, or the full portable ZIP.
+
+
+## Superseding validation update — 2026-11-01
+
+The earlier validation notes above contain intermediate statements that are now superseded by the completed GitHub Actions runs below.
+
+- Source CI run [41279727228](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279727228) completed successfully on both Ubuntu and Windows. Each platform passed all 63 unit tests, Python compilation, dashboard JavaScript syntax and configuration JSON checks; the Linux shell syntax check also passed.
+- Portable build and Windows smoke run [41279727221](https://github.com/joelinthechat-max/ORBIT/actions/runs/41279727221) completed successfully. The workflow verified the published v0.6.0 base ZIP against its checksum, overlaid the audited source, ran the bundled Linux Python test suite and static checks, rebuilt the v0.6.1 ZIP, checked ZIP integrity, then extracted the rebuilt package on Windows and passed all bundled-Windows-Python tests and the actual `run_windows.bat` launcher/API-status smoke test.
+- GitHub Actions artifact **ORBIT-v0.6.1-PORTABLE** was created for run 41279727221. Its artifact digest is `sha256:ddd6854a9e1f36e16f2a5bcc75421823503e790734f47d9809f34af01ff900be`; it is approximately 196 MB and expires 2026-11-15. This digest identifies the uploaded Actions artifact archive, not the inner portable ZIP's own SHA-256.
+- The candidate is a CI-validated portable build, not a published release and not a physical USB acceptance result. The PR remains a draft and `main` is unchanged.
+- These runs do not close the separately listed gaps: physical USB removal/recovery, a 4 GB device benchmark, real GGUF/VLM inference, external-web research, editor typing/saving, and unattended vision-driven autonomy.
+
+The portable package is therefore available as a short-lived workflow artifact for review/testing. Do not claim the remaining hardware, real-model or full-autonomy acceptance items are complete.
