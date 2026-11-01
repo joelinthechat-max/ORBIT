@@ -51,3 +51,29 @@ jobs:
 
       - name: Validate configuration JSON
         run: python -m json.tool CONFIG/orbit.json > "${{ runner.temp }}/orbit-config-validated.json"
+
+  browser-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated Playwright and Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+          BROWSER="$(find "$HOME/.cache/ms-playwright" -type f -name chrome -perm -111 -print -quit)"
+          test -n "$BROWSER"
+          sudo ln -sf "$BROWSER" /usr/local/bin/chromium
+
+      - name: Run isolated localhost browser integration
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONNOUSERSITE: "1"
+        run: python tests/integration_v05_browser.py
