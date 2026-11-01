@@ -68,7 +68,17 @@ class WorkspacePathValidationTests(unittest.TestCase):
 
     def test_resolved_stays_inside(self):
         p = self.validate("DATA/workspace", self.orbit_root)
-        self.assertTrue(str(p).startswith(str(self.orbit_root)))
+        self.assertEqual(p.relative_to(self.orbit_root), Path("DATA") / "workspace")
+
+    def test_symlink_escape_rejected(self):
+        with tempfile.TemporaryDirectory() as outside:
+            link = self.orbit_root / "escape"
+            try:
+                link.symlink_to(Path(outside), target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"Directory symlinks are unavailable on this host: {exc}")
+            with self.assertRaises(RuntimeError):
+                self.validate("escape/workspace", self.orbit_root)
 
 
 if __name__ == "__main__":
